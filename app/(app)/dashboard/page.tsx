@@ -21,17 +21,21 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  if (user.email) {
-    await supabase.from("profiles").upsert(
-      {
-        id: user.id,
-        role: "physio",
-        email: user.email,
-      },
-      {
-        onConflict: "id",
-      },
-    );
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id, role, email")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const hasProfile = Boolean(profile);
+  const isPhysio = profile?.role === "physio";
+
+  if (!hasProfile && user.email) {
+    await supabase.from("profiles").insert({
+      id: user.id,
+      role: "physio",
+      email: user.email,
+    });
   }
 
   const { data: invites } = await supabase
@@ -49,15 +53,35 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold text-zinc-900">Panel fizjoterapeuty</h1>
           <p className="text-sm text-zinc-600">Etap A: tworzenie i akceptacja zaproszen.</p>
         </div>
-        <Link
-          href="/"
-          className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-        >
-          Strona glowna
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/patient"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+          >
+            Portal pacjenta
+          </Link>
+          <Link
+            href="/physio/patients"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+          >
+            Pacjenci
+          </Link>
+          <Link
+            href="/"
+            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+          >
+            Strona glowna
+          </Link>
+        </div>
       </header>
 
-      <InviteForm />
+      {!isPhysio ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          To konto nie ma roli fizjoterapeuty. Mozesz przejsc do portalu pacjenta.
+        </section>
+      ) : null}
+
+      {isPhysio ? <InviteForm /> : null}
 
       <section className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-zinc-900">Ostatnie zaproszenia</h2>

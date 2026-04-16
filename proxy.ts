@@ -5,8 +5,11 @@ import { publicEnv } from "@/lib/env";
 function isProtectedPath(pathname: string): boolean {
   return (
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/patient") ||
+    pathname.startsWith("/physio") ||
     pathname.startsWith("/invite/accept") ||
-    pathname.startsWith("/api/invites")
+    pathname.startsWith("/api/invites") ||
+    pathname.startsWith("/api/memberships")
   );
 }
 
@@ -53,5 +56,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/invite/accept/:path*", "/api/invites/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/patient/:path*",
+    "/physio/:path*",
+    "/invite/accept/:path*",
+    "/api/invites/:path*",
+    "/api/memberships/:path*",
+  ],
 };
