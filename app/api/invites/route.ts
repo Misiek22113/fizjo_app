@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
+import { requireApiRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function normalizeEmail(email: string): string {
@@ -18,13 +19,13 @@ function normalizePhone(phone?: string): string | null {
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authResult = await requireApiRole(supabase, "physio");
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!authResult.ok) {
+    return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }
+
+  const { user } = authResult;
 
   const body = (await request.json()) as { email?: string; phone?: string };
   const patientEmail = body.email ? normalizeEmail(body.email) : "";

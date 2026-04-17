@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { requirePageRole } from "@/lib/auth/roles";
+import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { UnsubscribeButton } from "./_components/unsubscribe-button";
 
@@ -19,13 +20,8 @@ type PhysioProfile = {
 
 export default async function PatientPortalPage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/patient");
-  }
+  const authState = await requirePageRole(supabase, "patient", "/patient");
+  const user = authState.user;
 
   const { data: memberships } = await supabase
     .from("physio_patient_memberships")
@@ -51,33 +47,36 @@ export default async function PatientPortalPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-10">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-10"
+    >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Portal pacjenta</h1>
-          <p className="text-sm text-zinc-600">Sprawdz, do jakich fizjoterapeutow jestes przypisany.</p>
+          <h1 className="text-balance text-2xl font-semibold text-foreground">Portal Pacjenta</h1>
+          <p className="text-sm text-muted-foreground">Sprawdz, do jakich fizjoterapeutow jestes przypisany.</p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/dashboard"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
           >
             Dashboard
           </Link>
           <Link
             href="/"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
           >
             Strona glowna
           </Link>
         </div>
       </header>
 
-      <section className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-zinc-900">Twoje relacje</h2>
+      <section className="space-y-3 rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Twoje Relacje</h2>
 
         {typedMemberships.length === 0 ? (
-          <p className="text-sm text-zinc-600">Nie masz jeszcze aktywnych relacji.</p>
+          <p className="text-sm text-muted-foreground">Nie masz jeszcze aktywnych relacji.</p>
         ) : (
           <ul className="space-y-2">
             {typedMemberships.map((membership) => {
@@ -87,18 +86,14 @@ export default async function PatientPortalPage() {
               return (
                 <li
                   key={membership.id}
-                  className="flex flex-col gap-3 rounded-lg border border-zinc-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-lg border border-blue-100 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="space-y-1 text-sm">
-                    <p className="font-medium text-zinc-900">{physioName}</p>
-                    <p className="text-zinc-600">status: {membership.status}</p>
-                    <p className="text-zinc-600">
-                      dolaczenie: {new Date(membership.created_at).toLocaleString()}
-                    </p>
+                    <p className="font-medium text-foreground">{physioName}</p>
+                    <p className="text-muted-foreground">status: {membership.status}</p>
+                    <p className="text-muted-foreground">dolaczenie: {formatDateTime(membership.created_at)}</p>
                     {membership.unsubscribed_at ? (
-                      <p className="text-zinc-600">
-                        wypisanie: {new Date(membership.unsubscribed_at).toLocaleString()}
-                      </p>
+                      <p className="text-muted-foreground">wypisanie: {formatDateTime(membership.unsubscribed_at)}</p>
                     ) : null}
                   </div>
 

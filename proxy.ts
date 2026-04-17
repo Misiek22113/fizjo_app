@@ -7,10 +7,21 @@ function isProtectedPath(pathname: string): boolean {
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/patient") ||
     pathname.startsWith("/physio") ||
-    pathname.startsWith("/invite/accept") ||
     pathname.startsWith("/api/invites") ||
     pathname.startsWith("/api/memberships")
   );
+}
+
+function loginPathForRoute(pathname: string): string {
+  if (pathname.startsWith("/patient") || pathname.startsWith("/invite/accept")) {
+    return "/login/patient";
+  }
+
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/physio")) {
+    return "/login/physio";
+  }
+
+  return "/login";
 }
 
 export async function proxy(request: NextRequest) {
@@ -44,7 +55,7 @@ export async function proxy(request: NextRequest) {
 
   if (!user && isProtectedPath(request.nextUrl.pathname)) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
+    redirectUrl.pathname = loginPathForRoute(request.nextUrl.pathname);
     redirectUrl.searchParams.set(
       "next",
       `${request.nextUrl.pathname}${request.nextUrl.search}`,
@@ -60,7 +71,6 @@ export const config = {
     "/dashboard/:path*",
     "/patient/:path*",
     "/physio/:path*",
-    "/invite/accept/:path*",
     "/api/invites/:path*",
     "/api/memberships/:path*",
   ],

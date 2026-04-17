@@ -30,11 +30,14 @@ export default async function AcceptInvitePage({
 
   if (!token) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Brak tokenu zaproszenia</h1>
-          <p className="text-sm text-zinc-600">Link jest nieprawidlowy.</p>
-          <Link href="/login" className="text-sm font-medium text-emerald-700">
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-blue-200 bg-surface p-8 shadow-sm">
+          <h1 className="text-balance text-xl font-semibold text-foreground">Brak Tokenu Zaproszenia</h1>
+          <p className="text-sm text-muted-foreground">Link jest nieprawidlowy.</p>
+          <Link href="/login/patient" className="text-sm font-medium text-blue-700 hover:text-blue-800">
             Przejdz do logowania
           </Link>
         </section>
@@ -48,7 +51,7 @@ export default async function AcceptInvitePage({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=/invite/accept?token=${encodeURIComponent(token)}`);
+    redirect(`/invite/auth?token=${encodeURIComponent(token)}`);
   }
 
   const { data: invite, error } = await supabase
@@ -59,10 +62,13 @@ export default async function AcceptInvitePage({
 
   if (error || !invite) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Zaproszenie nie istnieje</h1>
-          <p className="text-sm text-zinc-600">Sprawdz, czy link jest poprawny.</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-blue-200 bg-surface p-8 shadow-sm">
+          <h1 className="text-balance text-xl font-semibold text-foreground">Zaproszenie Nie Istnieje</h1>
+          <p className="text-sm text-muted-foreground">Sprawdz, czy link jest poprawny.</p>
         </section>
       </main>
     );
@@ -72,10 +78,13 @@ export default async function AcceptInvitePage({
 
   if (typedInvite.status !== "pending") {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">To zaproszenie jest nieaktywne</h1>
-          <p className="text-sm text-zinc-600">Status: {typedInvite.status}</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-blue-200 bg-surface p-8 shadow-sm">
+          <h1 className="text-balance text-xl font-semibold text-foreground">To Zaproszenie Jest Nieaktywne</h1>
+          <p className="text-sm text-muted-foreground">Status: {typedInvite.status}</p>
         </section>
       </main>
     );
@@ -85,10 +94,13 @@ export default async function AcceptInvitePage({
     await supabase.from("invites").update({ status: "expired" }).eq("id", typedInvite.id);
 
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Zaproszenie wygaslo</h1>
-          <p className="text-sm text-zinc-600">Popros fizjoterapeute o nowe zaproszenie.</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-8 shadow-sm">
+          <h1 className="text-balance text-xl font-semibold text-amber-900">Zaproszenie Wygaslo</h1>
+          <p className="text-sm text-amber-800">Popros fizjoterapeute o nowe zaproszenie.</p>
         </section>
       </main>
     );
@@ -96,10 +108,13 @@ export default async function AcceptInvitePage({
 
   if (user.email?.toLowerCase() !== typedInvite.patient_email.toLowerCase()) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">To zaproszenie nie jest dla Ciebie</h1>
-          <p className="text-sm text-zinc-600">
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm" aria-live="polite">
+          <h1 className="text-balance text-xl font-semibold text-red-900">To Zaproszenie Nie Jest Dla Ciebie</h1>
+          <p className="text-sm text-red-800">
             Zaloguj sie na konto pacjenta z adresem {typedInvite.patient_email}.
           </p>
         </section>
@@ -120,10 +135,13 @@ export default async function AcceptInvitePage({
 
   if (profileError) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Nie udalo sie aktywowac konta</h1>
-          <p className="text-sm text-zinc-600">{profileError.message}</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm" aria-live="polite">
+          <h1 className="text-balance text-xl font-semibold text-red-900">Nie Udalo Sie Aktywowac Konta</h1>
+          <p className="text-sm text-red-800">{profileError.message}</p>
         </section>
       </main>
     );
@@ -144,10 +162,13 @@ export default async function AcceptInvitePage({
 
   if (membershipError) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Nie udalo sie utworzyc relacji</h1>
-          <p className="text-sm text-zinc-600">{membershipError.message}</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm" aria-live="polite">
+          <h1 className="text-balance text-xl font-semibold text-red-900">Nie Udalo Sie Utworzyc Relacji</h1>
+          <p className="text-sm text-red-800">{membershipError.message}</p>
         </section>
       </main>
     );
@@ -168,10 +189,13 @@ export default async function AcceptInvitePage({
 
   if (consentError) {
     return (
-      <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-        <section className="w-full space-y-3 rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-zinc-900">Nie udalo sie zapisac zgody</h1>
-          <p className="text-sm text-zinc-600">{consentError.message}</p>
+      <main
+        id="main-content"
+        className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+      >
+        <section className="w-full space-y-3 rounded-2xl border border-red-200 bg-red-50 p-8 shadow-sm" aria-live="polite">
+          <h1 className="text-balance text-xl font-semibold text-red-900">Nie Udalo Sie Zapisac Zgody</h1>
+          <p className="text-sm text-red-800">{consentError.message}</p>
         </section>
       </main>
     );
@@ -180,14 +204,17 @@ export default async function AcceptInvitePage({
   await supabase.from("invites").update({ status: "accepted" }).eq("id", typedInvite.id);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16">
-      <section className="w-full space-y-3 rounded-2xl border border-emerald-200 bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-semibold text-zinc-900">Zaproszenie zaakceptowane</h1>
-        <p className="text-sm text-zinc-700">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-screen w-full max-w-lg items-center px-6 py-16"
+    >
+      <section className="w-full space-y-3 rounded-2xl border border-blue-200 bg-blue-50 p-8 shadow-sm" aria-live="polite">
+        <h1 className="text-balance text-xl font-semibold text-blue-900">Zaproszenie Zaakceptowane</h1>
+        <p className="text-sm text-blue-800">
           Twoje konto pacjenta zostalo podlaczone do fizjoterapeuty.
         </p>
-        <Link href="/dashboard" className="text-sm font-medium text-emerald-700">
-          Przejdz do dashboardu
+        <Link href="/patient" className="text-sm font-medium text-blue-700 hover:text-blue-800">
+          Przejdz do portalu pacjenta
         </Link>
       </section>
     </main>

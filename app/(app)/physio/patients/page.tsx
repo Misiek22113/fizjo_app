@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { requirePageRole } from "@/lib/auth/roles";
+import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Membership = {
@@ -26,13 +27,8 @@ type PatientProfile = {
 
 export default async function PhysioPatientsPage() {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login?next=/physio/patients");
-  }
+  const authState = await requirePageRole(supabase, "physio", "/physio/patients");
+  const user = authState.user;
 
   const { data: memberships } = await supabase
     .from("physio_patient_memberships")
@@ -67,33 +63,36 @@ export default async function PhysioPatientsPage() {
   const typedInvites = (invites ?? []) as Invite[];
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-10">
+    <main
+      id="main-content"
+      className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-10"
+    >
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-zinc-900">Pacjenci fizjoterapeuty</h1>
-          <p className="text-sm text-zinc-600">Aktywne relacje i historia zaproszen.</p>
+          <h1 className="text-balance text-2xl font-semibold text-foreground">Pacjenci Fizjoterapeuty</h1>
+          <p className="text-sm text-muted-foreground">Aktywne relacje i historia zaproszen.</p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/dashboard"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
           >
             Dashboard
           </Link>
           <Link
             href="/"
-            className="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
+            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
           >
             Strona glowna
           </Link>
         </div>
       </header>
 
-      <section className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-zinc-900">Relacje pacjentow</h2>
+      <section className="space-y-3 rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Relacje Pacjentow</h2>
 
         {typedMemberships.length === 0 ? (
-          <p className="text-sm text-zinc-600">Brak relacji pacjentow.</p>
+          <p className="text-sm text-muted-foreground">Brak relacji pacjentow.</p>
         ) : (
           <ul className="space-y-2">
             {typedMemberships.map((membership) => {
@@ -103,17 +102,13 @@ export default async function PhysioPatientsPage() {
               return (
                 <li
                   key={membership.id}
-                  className="rounded-lg border border-zinc-200 px-4 py-3 text-sm"
+                  className="rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm"
                 >
-                  <p className="font-medium text-zinc-900">{patientName}</p>
-                  <p className="text-zinc-600">status: {membership.status}</p>
-                  <p className="text-zinc-600">
-                    dolaczenie: {new Date(membership.created_at).toLocaleString()}
-                  </p>
+                  <p className="font-medium text-foreground">{patientName}</p>
+                  <p className="text-muted-foreground">status: {membership.status}</p>
+                  <p className="text-muted-foreground">dolaczenie: {formatDateTime(membership.created_at)}</p>
                   {membership.unsubscribed_at ? (
-                    <p className="text-zinc-600">
-                      wypisanie: {new Date(membership.unsubscribed_at).toLocaleString()}
-                    </p>
+                    <p className="text-muted-foreground">wypisanie: {formatDateTime(membership.unsubscribed_at)}</p>
                   ) : null}
                 </li>
               );
@@ -122,19 +117,19 @@ export default async function PhysioPatientsPage() {
         )}
       </section>
 
-      <section className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-zinc-900">Historia zaproszen</h2>
+      <section className="space-y-3 rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-foreground">Historia Zaproszen</h2>
 
         {typedInvites.length === 0 ? (
-          <p className="text-sm text-zinc-600">Brak zaproszen.</p>
+          <p className="text-sm text-muted-foreground">Brak zaproszen.</p>
         ) : (
           <ul className="space-y-2">
             {typedInvites.map((invite) => (
-              <li key={invite.id} className="rounded-lg border border-zinc-200 px-4 py-3 text-sm">
-                <p className="font-medium text-zinc-900">{invite.patient_email}</p>
-                <p className="text-zinc-600">status: {invite.status}</p>
-                <p className="text-zinc-600">utworzono: {new Date(invite.created_at).toLocaleString()}</p>
-                <p className="text-zinc-600">wygasa: {new Date(invite.expires_at).toLocaleString()}</p>
+              <li key={invite.id} className="rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm">
+                <p className="font-medium text-foreground">{invite.patient_email}</p>
+                <p className="text-muted-foreground">status: {invite.status}</p>
+                <p className="text-muted-foreground">utworzono: {formatDateTime(invite.created_at)}</p>
+                <p className="text-muted-foreground">wygasa: {formatDateTime(invite.expires_at)}</p>
               </li>
             ))}
           </ul>

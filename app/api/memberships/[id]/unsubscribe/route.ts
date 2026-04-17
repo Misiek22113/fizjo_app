@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { requireApiRole } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type UnsubscribeParams = {
@@ -9,13 +10,13 @@ export async function POST(_request: NextRequest, { params }: UnsubscribeParams)
   const { id } = await params;
   const supabase = await createSupabaseServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const authResult = await requireApiRole(supabase, "patient");
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!authResult.ok) {
+    return NextResponse.json({ error: authResult.error }, { status: authResult.status });
   }
+
+  const { user } = authResult;
 
   const { data: membership, error: membershipFetchError } = await supabase
     .from("physio_patient_memberships")
