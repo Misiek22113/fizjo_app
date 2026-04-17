@@ -13,8 +13,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fizjo App",
-  description: "MVP for physiotherapist reminders",
+  title: {
+    default: "Fizjo App - przypomnienia o cwiczeniach dla fizjoterapii",
+    template: "%s | Fizjo App",
+  },
+  description:
+    "Aplikacja dla fizjoterapeutow do wysylania pacjentom przypomnien o cwiczeniach. Wiecej regularnosci, lepsza wspolpraca i szybszy powrot do zdrowia.",
+  keywords: [
+    "fizjoterapia",
+    "przypomnienia o cwiczeniach",
+    "pacjent",
+    "fizjoterapeuta",
+    "rehabilitacja",
+  ],
+  openGraph: {
+    title: "Fizjo App",
+    description:
+      "Wysylaj pacjentom przypomnienia o cwiczeniach i zwiekszaj skutecznosc terapii.",
+    type: "website",
+    locale: "pl_PL",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fizjo App",
+    description:
+      "Przypomnienia o cwiczeniach dla pacjentow, lepsza regularnosc i lepsze efekty fizjoterapii.",
+  },
 };
 
 export const viewport: Viewport = {
@@ -28,7 +52,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="pl"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
