@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { requirePageRole } from "@/lib/auth/roles";
 import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -49,26 +48,12 @@ export default async function PatientPortalPage() {
   return (
     <main
       id="main-content"
-      className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-6 py-10"
+      className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-10"
     >
-      <header className="flex flex-wrap items-center justify-between gap-3">
+      <header className="space-y-1">
         <div>
           <h1 className="text-balance text-2xl font-semibold text-foreground">Portal Pacjenta</h1>
           <p className="text-sm text-muted-foreground">Sprawdz, do jakich fizjoterapeutow jestes przypisany.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link
-            href="/dashboard"
-            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/"
-            className="rounded-lg border border-blue-200 bg-surface px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-surface-muted focus-visible:ring-2 focus-visible:ring-blue-300"
-          >
-            Strona glowna
-          </Link>
         </div>
       </header>
 

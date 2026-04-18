@@ -2,13 +2,14 @@ import Link from "next/link";
 import { PasswordLoginForm } from "../_components/password-login-form";
 
 type PhysioLoginPageProps = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; mode?: "login" | "signup" }>;
 };
 
 export default async function PhysioLoginPage({ searchParams }: PhysioLoginPageProps) {
   const params = await searchParams;
   const candidateNextPath = params.next ?? "/dashboard";
   const nextPath = candidateNextPath.startsWith("/") ? candidateNextPath : "/dashboard";
+  const initialMode = params.mode === "signup" ? "signup" : "login";
 
   return (
     <main
@@ -24,7 +25,12 @@ export default async function PhysioLoginPage({ searchParams }: PhysioLoginPageP
           </p>
         </header>
 
-        <PasswordLoginForm role="physio" nextPath={nextPath} allowSignUp />
+        <PasswordLoginForm
+          role="physio"
+          nextPath={nextPath}
+          allowSignUp
+          initialMode={initialMode}
+        />
 
         <Link href="/login" className="inline-flex text-sm font-medium text-blue-700 hover:text-blue-800">
           Wroc do wyboru logowania

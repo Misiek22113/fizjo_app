@@ -2,13 +2,14 @@ import Link from "next/link";
 import { PasswordLoginForm } from "../_components/password-login-form";
 
 type PatientLoginPageProps = {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; mode?: "login" | "signup" }>;
 };
 
 export default async function PatientLoginPage({ searchParams }: PatientLoginPageProps) {
   const params = await searchParams;
   const candidateNextPath = params.next ?? "/patient";
   const nextPath = candidateNextPath.startsWith("/") ? candidateNextPath : "/patient";
+  const initialMode = params.mode === "signup" ? "signup" : "login";
 
   return (
     <main
@@ -27,7 +28,8 @@ export default async function PatientLoginPage({ searchParams }: PatientLoginPag
         <PasswordLoginForm
           role="patient"
           nextPath={nextPath}
-          allowSignUp={false}
+          allowSignUp
+          initialMode={initialMode}
           showInviteLink
         />
 

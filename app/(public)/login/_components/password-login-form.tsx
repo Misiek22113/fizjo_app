@@ -10,6 +10,7 @@ type PasswordLoginFormProps = {
   role: UserRole;
   nextPath: string;
   allowSignUp: boolean;
+  initialMode?: Mode;
   showInviteLink?: boolean;
 };
 
@@ -23,9 +24,10 @@ export function PasswordLoginForm({
   role,
   nextPath,
   allowSignUp,
+  initialMode = "login",
   showInviteLink = false,
 }: PasswordLoginFormProps) {
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -152,8 +154,46 @@ export function PasswordLoginForm({
     setMessage(null);
     setError(null);
 
+    let patientInviteToken: string | null = null;
+
+    if (role === "patient") {
+      const eligibilityResponse = await fetch("/api/invites/patient-signup-eligibility", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const eligibilityPayload =
+        (await eligibilityResponse.json().catch(() => null)) as
+          | { eligible?: boolean; token?: string; error?: string }
+          | null;
+
+      if (!eligibilityResponse.ok) {
+        setError(eligibilityPayload?.error ?? "Nie moge sprawdzic zaproszenia dla tego adresu.");
+        setLoading(false);
+        return;
+      }
+
+      if (!eligibilityPayload?.eligible || !eligibilityPayload.token) {
+        setError(
+          "Rejestracja pacjenta jest dostepna dopiero po dodaniu lub zaproszeniu przez fizjoterapeute.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      patientInviteToken = eligibilityPayload.token;
+    }
+
     const redirectUrl = new URL("/auth/callback", window.location.origin);
-    redirectUrl.searchParams.set("next", safeNextPath);
+    redirectUrl.searchParams.set(
+      "next",
+      role === "patient" && patientInviteToken
+        ? `/invite/accept?token=${patientInviteToken}`
+        : safeNextPath,
+    );
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
@@ -183,7 +223,14 @@ export function PasswordLoginForm({
       }
 
       if (role === "patient") {
-        setError("Rejestracja pacjenta jest dostepna tylko z linku zaproszenia.");
+        if (patientInviteToken) {
+          window.location.assign(`/invite/accept?token=${encodeURIComponent(patientInviteToken)}`);
+          return;
+        }
+
+        setError(
+          "Rejestracja pacjenta jest dostepna dopiero po dodaniu lub zaproszeniu przez fizjoterapeute.",
+        );
         setLoading(false);
         return;
       }
@@ -192,7 +239,11 @@ export function PasswordLoginForm({
       return;
     }
 
-    setMessage("Sprawdz skrzynke email i potwierdz rejestracje konta.");
+    setMessage(
+      role === "patient"
+        ? "Sprawdz skrzynke email i potwierdz rejestracje. Po potwierdzeniu uzyj linku zaproszenia od fizjoterapeuty."
+        : "Sprawdz skrzynke email i potwierdz rejestracje konta.",
+    );
     setLoading(false);
   }
 

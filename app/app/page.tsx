@@ -8,67 +8,55 @@ export default function AppHubPage() {
       <main id="main-content" className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="space-y-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Centrum aplikacji</p>
-          <h1 className="text-balance text-3xl font-semibold text-foreground md:text-5xl">Wybierz swoja strefe pracy</h1>
+          <h1 className="text-balance text-3xl font-semibold text-foreground md:text-5xl">Wybierz swoja strefe</h1>
           <p className="max-w-3xl text-sm text-muted-foreground md:text-base">
-            Otworz obszar dopasowany do Twojej roli i kontynuuj swoj flow w kilka sekund.
+            Tylko dwa kroki dla kazdej roli: zaloguj sie albo zarejestruj.
           </p>
         </header>
 
         <section className="grid gap-4 md:grid-cols-2">
           <article className="flex h-full flex-col rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Dla fizjoterapeutow</p>
-            <h2 className="mt-2 text-xl font-semibold text-foreground">Zarzadzaj pacjentami i zaproszeniami</h2>
+            <h2 className="mt-2 text-xl font-semibold text-foreground">Panel fizjoterapeuty</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Wysylaj zaproszenia, sprawdzaj statusy i przegladaj relacje z pacjentami.
+              Zarzadzaj pacjentami, zaproszeniami i przebiegiem wspolpracy.
             </p>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <Link
-                href="/login/physio"
+                href="/login/physio?next=%2Fdashboard&mode=login"
                 className="rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
               >
-                Logowanie fizjoterapeuty
+                Zaloguj
               </Link>
               <Link
-                href="/dashboard"
+                href="/login/physio?next=%2Fdashboard&mode=signup"
                 className="rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-surface-muted"
               >
-                Dashboard
-              </Link>
-              <Link
-                href="/physio/patients"
-                className="sm:col-span-2 rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-surface-muted"
-              >
-                Lista pacjentow
+                Zarejestruj
               </Link>
             </div>
           </article>
 
           <article className="flex h-full flex-col rounded-2xl border border-blue-200 bg-surface p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Dla pacjentow</p>
-            <h2 className="mt-2 text-xl font-semibold text-foreground">Akceptuj zaproszenie i pozostan w kontakcie</h2>
+            <h2 className="mt-2 text-xl font-semibold text-foreground">Panel pacjenta</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Dolacz przez link zaproszenia, zaloguj sie i utrzymuj kontakt z fizjoterapeuta.
+              Rejestracja i logowanie konta pacjenta po dodaniu przez fizjoterapeute.
             </p>
 
             <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <Link
-                href="/invite/accept"
+                href="/login/patient?next=%2Fpatient&mode=login"
                 className="rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground transition hover:bg-primary-hover"
               >
-                Akceptuj zaproszenie
+                Zaloguj
               </Link>
               <Link
-                href="/login/patient"
+                href="/login/patient?next=%2Fpatient&mode=signup"
                 className="rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-surface-muted"
               >
-                Logowanie pacjenta
-              </Link>
-              <Link
-                href="/patient"
-                className="sm:col-span-2 rounded-lg border border-blue-200 bg-white px-4 py-2.5 text-center text-sm font-semibold text-foreground transition hover:bg-surface-muted"
-              >
-                Portal pacjenta
+                Zarejestruj
               </Link>
             </div>
           </article>
