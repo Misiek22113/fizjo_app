@@ -22,8 +22,26 @@ export const publicEnv = {
 };
 
 export function getSupabaseServiceRoleKey(): string {
-  return requireEnv(
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY,
-    "NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY",
-  );
+  return requireEnv(process.env.SUPABASE_SERVICE_ROLE_KEY, "SUPABASE_SERVICE_ROLE_KEY");
 }
+
+export const serverEnv = {
+  get twilioAccountSid() {
+    return requireEnv(process.env.TWILIO_ACCOUNT_SID, "TWILIO_ACCOUNT_SID");
+  },
+  get twilioAuthToken() {
+    return requireEnv(process.env.TWILIO_AUTH_TOKEN, "TWILIO_AUTH_TOKEN");
+  },
+  get twilioMessagingServiceSid() {
+    return requireEnv(
+      process.env.TWILIO_MESSAGING_SERVICE_SID,
+      "TWILIO_MESSAGING_SERVICE_SID",
+    );
+  },
+  get cronSharedSecret() {
+    return requireEnv(process.env.CRON_SHARED_SECRET, "CRON_SHARED_SECRET");
+  },
+  get appBaseUrl() {
+    return requireEnv(process.env.APP_BASE_URL, "APP_BASE_URL");
+  },
+};

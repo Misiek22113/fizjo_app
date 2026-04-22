@@ -127,6 +127,7 @@ export default async function AcceptInvitePage({
       id: user.id,
       role: "patient",
       email: typedInvite.patient_email,
+      phone: typedInvite.patient_phone,
     },
     {
       onConflict: "id",

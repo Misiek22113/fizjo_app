@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiRole } from "@/lib/auth/roles";
+import { normalizePhoneToE164 } from "@/lib/phone";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function normalizeEmail(email: string): string {
@@ -12,8 +13,7 @@ function normalizePhone(phone?: string): string | null {
     return null;
   }
 
-  const value = phone.trim();
-  return value.length > 0 ? value : null;
+  return normalizePhoneToE164(phone);
 }
 
 export async function POST(request: NextRequest) {
@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
   if (!patientEmail) {
     return NextResponse.json(
       { error: "Email pacjenta jest wymagany." },
+      { status: 400 },
+    );
+  }
+
+  if (body.phone && !phone) {
+    return NextResponse.json(
+      { error: "Telefon musi byc w formacie E.164, np. +48500100200." },
       { status: 400 },
     );
   }

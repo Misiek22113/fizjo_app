@@ -1,6 +1,7 @@
 import { requirePageRole } from "@/lib/auth/roles";
 import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { PhoneForm } from "./_components/phone-form";
 import { UnsubscribeButton } from "./_components/unsubscribe-button";
 
 type PatientMembership = {
@@ -17,6 +18,10 @@ type PhysioProfile = {
   display_name: string | null;
 };
 
+type PatientProfile = {
+  phone: string | null;
+};
+
 export default async function PatientPortalPage() {
   const supabase = await createSupabaseServerClient();
   const authState = await requirePageRole(supabase, "patient", "/patient");
@@ -30,6 +35,14 @@ export default async function PatientPortalPage() {
 
   const typedMemberships = (memberships ?? []) as PatientMembership[];
   const physioIds = [...new Set(typedMemberships.map((membership) => membership.physio_id))];
+
+  const { data: patientProfile } = await supabase
+    .from("profiles")
+    .select("phone")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const typedPatientProfile = patientProfile as PatientProfile | null;
 
   const physioMap = new Map<string, PhysioProfile>();
 
@@ -92,6 +105,8 @@ export default async function PatientPortalPage() {
           </ul>
         )}
       </section>
+
+      <PhoneForm initialPhone={typedPatientProfile?.phone ?? ""} />
     </main>
   );
 }

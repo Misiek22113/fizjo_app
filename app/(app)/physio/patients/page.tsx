@@ -1,6 +1,7 @@
 import { requirePageRole } from "@/lib/auth/roles";
 import { formatDateTime } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 type Membership = {
   id: string;
@@ -89,12 +90,29 @@ export default async function PhysioPatientsPage() {
                   key={membership.id}
                   className="rounded-lg border border-blue-100 bg-white px-4 py-3 text-sm"
                 >
-                  <p className="font-medium text-foreground">{patientName}</p>
-                  <p className="text-muted-foreground">status: {membership.status}</p>
-                  <p className="text-muted-foreground">dolaczenie: {formatDateTime(membership.created_at)}</p>
-                  {membership.unsubscribed_at ? (
-                    <p className="text-muted-foreground">wypisanie: {formatDateTime(membership.unsubscribed_at)}</p>
-                  ) : null}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="font-medium text-foreground">{patientName}</p>
+                      <p className="text-muted-foreground">status: {membership.status}</p>
+                      <p className="text-muted-foreground">dolaczenie: {formatDateTime(membership.created_at)}</p>
+                      {membership.unsubscribed_at ? (
+                        <p className="text-muted-foreground">wypisanie: {formatDateTime(membership.unsubscribed_at)}</p>
+                      ) : null}
+                    </div>
+
+                    {membership.status === "active" ? (
+                      <Link
+                        href={`/physio/patients/${membership.patient_id}/notifications`}
+                        className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-800 transition-colors hover:bg-blue-100"
+                      >
+                        Powiadomienia
+                      </Link>
+                    ) : (
+                      <span className="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-600">
+                        Relacja nieaktywna
+                      </span>
+                    )}
+                  </div>
                 </li>
               );
             })}
