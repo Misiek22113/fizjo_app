@@ -39,8 +39,6 @@ function getWarsawDateTimeParts() {
   const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
 
   return {
-    date: `${map.year}-${map.month}-${map.day}`,
-    time: `${map.hour}:${map.minute}:${map.second}`,
     shortTime: `${map.hour}:${map.minute}`,
   };
 }
@@ -111,23 +109,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       ? customMessage
       : `TEST: przypomnienie od fizjoterapeuty o ${now.shortTime}.`;
 
-  const { data: delivery, error: deliveryError } = await supabase
-    .from("notification_deliveries")
+  const { data: testSend, error: testSendError } = await supabase
+    .from("notification_test_sends")
     .insert({
-      schedule_id: null,
       physio_id: authResult.user.id,
       patient_id: patientId,
-      scheduled_date: now.date,
-      scheduled_time: now.time,
-      scheduled_timezone: "Europe/Warsaw",
+      phone: patientProfile.phone,
       message_body: messageBody,
       status: "pending",
     })
     .select("id")
     .single();
 
-  if (deliveryError) {
-    return NextResponse.json({ error: deliveryError.message }, { status: 500 });
+  if (testSendError) {
+    return NextResponse.json({ error: testSendError.message }, { status: 500 });
   }
 
   try {
@@ -140,14 +135,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const mappedStatus = mapTwilioStatus(twilioResponse.status);
 
     await supabase
-      .from("notification_deliveries")
+      .from("notification_test_sends")
       .update({
         message_sid: twilioResponse.sid,
         status: mappedStatus,
         error_code: twilioResponse.error_code,
         error_message: twilioResponse.error_message,
       })
-      .eq("id", delivery.id);
+      .eq("id", testSend.id);
 
     return NextResponse.json(
       {
@@ -159,12 +154,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   } catch (error) {
     await supabase
-      .from("notification_deliveries")
+      .from("notification_test_sends")
       .update({
         status: "failed",
         error_message: error instanceof Error ? error.message : "Twilio send failed.",
       })
-      .eq("id", delivery.id);
+      .eq("id", testSend.id);
 
     return NextResponse.json(
       {

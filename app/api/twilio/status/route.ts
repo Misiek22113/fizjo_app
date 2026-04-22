@@ -47,17 +47,33 @@ export async function POST(request: NextRequest) {
   }
 
   const supabaseAdmin = createSupabaseAdminClient();
-  const { error } = await supabaseAdmin
+  const { data: deliveriesUpdated, error } = await supabaseAdmin
     .from("notification_deliveries")
     .update({
       status: mapTwilioStatus(messageStatus),
       error_code: errorCode,
       error_message: errorMessage,
     })
-    .eq("message_sid", messageSid);
+    .eq("message_sid", messageSid)
+    .select("id");
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!deliveriesUpdated || deliveriesUpdated.length === 0) {
+    const { error: testSendError } = await supabaseAdmin
+      .from("notification_test_sends")
+      .update({
+        status: mapTwilioStatus(messageStatus),
+        error_code: errorCode,
+        error_message: errorMessage,
+      })
+      .eq("message_sid", messageSid);
+
+    if (testSendError) {
+      return NextResponse.json({ error: testSendError.message }, { status: 500 });
+    }
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });
