@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { requireApiRole } from "@/lib/auth/roles";
+import type { ScheduleSlot } from "@/lib/notification-schedule";
 import { validateSchedulePayload } from "@/lib/notification-schedule";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -45,7 +46,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
 
   const { data, error } = await supabase
     .from("patient_notification_schedules")
-    .select("id, patient_id, times, is_enabled, timezone, updated_at")
+    .select("id, patient_id, slots, times, is_enabled, timezone, updated_at")
     .eq("physio_id", authResult.user.id)
     .eq("patient_id", patientId)
     .maybeSingle();
@@ -54,14 +55,26 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const times = (data?.times ?? []).map((value: string) => value.slice(0, 5));
+  const normalizedSlots = ((data?.slots ?? []) as ScheduleSlot[])
+    .map((slot) => ({
+      time: slot.time?.slice(0, 5),
+      days: Array.isArray(slot.days) ? slot.days : [],
+    }))
+    .filter((slot) => typeof slot.time === "string" && slot.time.length === 5 && slot.days.length > 0);
+
+  const fallbackSlots = (data?.times ?? []).map((value: string) => ({
+    time: value.slice(0, 5),
+    days: [1, 2, 3, 4, 5, 6, 7],
+  }));
+
+  const slots = normalizedSlots.length > 0 ? normalizedSlots : fallbackSlots;
 
   return NextResponse.json(
     {
       schedule: data
         ? {
             ...data,
-            times,
+            slots,
           }
         : null,
       defaults: {
@@ -101,13 +114,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       {
         physio_id: authResult.user.id,
         patient_id: patientId,
-        times: validated.times,
+        slots: validated.slots,
+        times: validated.slots.map((slot) => slot.time),
         is_enabled: validated.isEnabled,
         timezone: "Europe/Warsaw",
       },
       { onConflict: "physio_id,patient_id" },
     )
-    .select("id, patient_id, times, is_enabled, timezone, updated_at")
+    .select("id, patient_id, slots, times, is_enabled, timezone, updated_at")
     .single();
 
   if (error) {
@@ -118,7 +132,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     {
       schedule: {
         ...data,
-        times: (data.times ?? []).map((value: string) => value.slice(0, 5)),
+        slots: (data.slots ?? []).map((slot: ScheduleSlot) => ({
+          time: slot.time.slice(0, 5),
+          days: slot.days,
+        })),
       },
     },
     { status: 200 },

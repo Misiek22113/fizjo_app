@@ -1,5 +1,15 @@
 const TIME_24H_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
-const MAX_DAILY_REMINDERS = 8;
+const MAX_DAILY_REMINDER_SLOTS = 2;
+
+type RawScheduleSlot = {
+  time?: unknown;
+  days?: unknown;
+};
+
+export type ScheduleSlot = {
+  time: string;
+  days: number[];
+};
 
 function parseTimeToMinutes(value: string): number {
   const [hours, minutes] = value.split(":").map((part) => Number(part));
@@ -7,44 +17,68 @@ function parseTimeToMinutes(value: string): number {
 }
 
 export type ValidatedSchedule = {
-  times: string[];
+  slots: ScheduleSlot[];
   isEnabled: boolean;
 };
 
 export function validateSchedulePayload(payload: unknown): ValidatedSchedule | { error: string } {
-  const body = payload as { times?: unknown; isEnabled?: unknown };
-  const inputTimes = Array.isArray(body?.times) ? body.times : null;
+  const body = payload as { slots?: unknown; isEnabled?: unknown };
+  const inputSlots = Array.isArray(body?.slots) ? body.slots : null;
 
-  if (!inputTimes) {
-    return { error: "Pole times jest wymagane." };
+  if (!inputSlots) {
+    return { error: "Pole slots jest wymagane." };
   }
 
-  const parsedTimes = inputTimes.map((value) => (typeof value === "string" ? value.trim() : ""));
-
-  if (parsedTimes.length === 0) {
+  if (inputSlots.length === 0) {
     return { error: "Dodaj przynajmniej jedna godzine przypomnienia." };
   }
 
-  if (parsedTimes.length > MAX_DAILY_REMINDERS) {
-    return { error: `Maksymalnie ${MAX_DAILY_REMINDERS} przypomnien dziennie.` };
+  if (inputSlots.length > MAX_DAILY_REMINDER_SLOTS) {
+    return { error: `Maksymalnie ${MAX_DAILY_REMINDER_SLOTS} godziny przypomnien dziennie.` };
   }
 
-  const invalidTime = parsedTimes.find((value) => !TIME_24H_PATTERN.test(value));
+  const normalizedSlots: ScheduleSlot[] = [];
 
-  if (invalidTime) {
-    return { error: `Nieprawidlowa godzina: ${invalidTime}. Uzyj HH:mm.` };
+  for (let index = 0; index < inputSlots.length; index += 1) {
+    const slot = inputSlots[index] as RawScheduleSlot;
+    const slotTime = typeof slot?.time === "string" ? slot.time.trim() : "";
+    const slotDays = Array.isArray(slot?.days) ? slot.days : [];
+
+    if (!TIME_24H_PATTERN.test(slotTime)) {
+      return { error: `Nieprawidlowa godzina w pozycji ${index + 1}. Uzyj HH:mm.` };
+    }
+
+    const parsedDays = slotDays.filter((day) => Number.isInteger(day)).map((day) => Number(day));
+    const invalidDay = parsedDays.find((day) => day < 1 || day > 7);
+
+    if (invalidDay) {
+      return { error: `Nieprawidlowy dzien tygodnia (${invalidDay}) w pozycji ${index + 1}.` };
+    }
+
+    const uniqueDays = [...new Set(parsedDays)].sort((a, b) => a - b);
+
+    if (uniqueDays.length === 0) {
+      return { error: `Wybierz przynajmniej jeden dzien tygodnia dla godziny ${slotTime}.` };
+    }
+
+    normalizedSlots.push({
+      time: slotTime,
+      days: uniqueDays,
+    });
   }
 
-  const uniqueTimes = [...new Set(parsedTimes)];
+  const uniqueTimes = [...new Set(normalizedSlots.map((slot) => slot.time))];
 
-  if (uniqueTimes.length !== parsedTimes.length) {
+  if (uniqueTimes.length !== normalizedSlots.length) {
     return { error: "Godziny nie moga sie powtarzac." };
   }
 
-  const sortedTimes = uniqueTimes.sort((a, b) => parseTimeToMinutes(a) - parseTimeToMinutes(b));
+  const sortedSlots = normalizedSlots.sort(
+    (a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time),
+  );
 
   return {
-    times: sortedTimes,
+    slots: sortedSlots,
     isEnabled: body?.isEnabled === false ? false : true,
   };
 }
@@ -90,4 +124,22 @@ export function getCurrentDateInZone(timeZone: string): string {
   });
 
   return formatter.format(new Date());
+}
+
+export function getCurrentIsoWeekdayInZone(timeZone: string): number {
+  const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+  const weekdayLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "short",
+  })
+    .format(new Date())
+    .toLowerCase();
+
+  const dayIndex = weekdays.indexOf(weekdayLabel as (typeof weekdays)[number]);
+
+  if (dayIndex === -1) {
+    return 1;
+  }
+
+  return dayIndex === 0 ? 7 : dayIndex;
 }

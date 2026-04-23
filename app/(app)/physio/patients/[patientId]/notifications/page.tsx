@@ -14,7 +14,10 @@ type ProfileRecord = {
 };
 
 type ScheduleRecord = {
-  times: string[];
+  slots: Array<{
+    time: string;
+    days: number[];
+  }>;
   is_enabled: boolean;
 };
 
@@ -102,13 +105,23 @@ export default async function PatientNotificationsPage({ params }: Notifications
 
   const { data: schedule } = await supabase
     .from("patient_notification_schedules")
-    .select("times, is_enabled")
+    .select("slots, times, is_enabled")
     .eq("physio_id", auth.user.id)
     .eq("patient_id", patientId)
     .maybeSingle();
 
   const typedProfile = patientProfile as ProfileRecord;
   const typedSchedule = schedule as ScheduleRecord | null;
+
+  const initialSlots = typedSchedule?.slots?.length
+    ? typedSchedule.slots.map((slot) => ({
+        time: slot.time.slice(0, 5),
+        days: slot.days,
+      }))
+    : ((schedule as { times?: string[] } | null)?.times ?? ["08:00"]).map((value) => ({
+        time: value.slice(0, 5),
+        days: [1, 2, 3, 4, 5, 6, 7],
+      }));
 
   return (
     <main
@@ -130,7 +143,7 @@ export default async function PatientNotificationsPage({ params }: Notifications
       <NotificationsForm
         patientId={patientId}
         patientLabel={typedProfile.display_name || typedProfile.email}
-        initialTimes={(typedSchedule?.times ?? ["08:00"]).map((value) => value.slice(0, 5))}
+        initialSlots={initialSlots}
         initialEnabled={typedSchedule?.is_enabled ?? true}
       />
     </main>

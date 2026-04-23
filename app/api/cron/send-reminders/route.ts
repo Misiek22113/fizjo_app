@@ -1,13 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { serverEnv } from "@/lib/env";
-import { getCurrentDateInZone, getCurrentTimeInZone } from "@/lib/notification-schedule";
+import {
+  getCurrentDateInZone,
+  getCurrentIsoWeekdayInZone,
+  getCurrentTimeInZone,
+} from "@/lib/notification-schedule";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { sendTwilioSms } from "@/lib/twilio";
+
+type ScheduleSlot = {
+  time: string;
+  days: number[];
+};
 
 type ScheduleRecord = {
   id: string;
   physio_id: string;
   patient_id: string;
+  slots: ScheduleSlot[];
   times: string[];
   is_enabled: boolean;
   timezone: string;
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
 
   const { data: schedules, error: schedulesError } = await supabaseAdmin
     .from("patient_notification_schedules")
-    .select("id, physio_id, patient_id, times, is_enabled, timezone")
+    .select("id, physio_id, patient_id, slots, times, is_enabled, timezone")
     .eq("is_enabled", true);
 
   if (schedulesError) {
@@ -72,7 +82,23 @@ export async function POST(request: NextRequest) {
     const zone = schedule.timezone || "Europe/Warsaw";
     const today = getCurrentDateInZone(zone);
     const nowTime = getCurrentTimeInZone(zone);
-    const dueTimes = (schedule.times ?? []).map((time) => time.slice(0, 5)).filter((time) => time <= nowTime);
+    const isoWeekday = getCurrentIsoWeekdayInZone(zone);
+    const normalizedSlots = (schedule.slots ?? [])
+      .map((slot) => ({
+        time: slot.time?.slice(0, 5),
+        days: Array.isArray(slot.days) ? slot.days : [],
+      }))
+      .filter((slot) => typeof slot.time === "string" && slot.time.length === 5 && slot.days.length > 0);
+
+    const fallbackSlots = (schedule.times ?? []).map((time) => ({
+      time: time.slice(0, 5),
+      days: [1, 2, 3, 4, 5, 6, 7],
+    }));
+
+    const slotsToEvaluate = normalizedSlots.length > 0 ? normalizedSlots : fallbackSlots;
+    const dueTimes = slotsToEvaluate
+      .filter((slot) => slot.days.includes(isoWeekday) && slot.time <= nowTime)
+      .map((slot) => slot.time);
 
     if (dueTimes.length === 0) {
       continue;
