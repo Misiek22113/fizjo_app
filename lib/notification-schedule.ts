@@ -16,6 +16,11 @@ function parseTimeToMinutes(value: string): number {
   return hours * 60 + minutes;
 }
 
+function isHalfHourTime(value: string): boolean {
+  const minutes = Number(value.split(":")[1]);
+  return minutes === 0 || minutes === 30;
+}
+
 export type ValidatedSchedule = {
   slots: ScheduleSlot[];
   isEnabled: boolean;
@@ -46,6 +51,10 @@ export function validateSchedulePayload(payload: unknown): ValidatedSchedule | {
 
     if (!TIME_24H_PATTERN.test(slotTime)) {
       return { error: `Nieprawidlowa godzina w pozycji ${index + 1}. Uzyj HH:mm.` };
+    }
+
+    if (!isHalfHourTime(slotTime)) {
+      return { error: `Godzina w pozycji ${index + 1} musi byc pelna lub polowkowa (np. 08:00, 08:30).` };
     }
 
     const parsedDays = slotDays.filter((day) => Number.isInteger(day)).map((day) => Number(day));

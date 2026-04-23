@@ -245,8 +245,9 @@ export function NotificationsForm({
           Powiadomienia dla: {patientLabel}
         </h2>
         <p className="text-sm text-muted-foreground">
-          Ustaw maksymalnie 2 godziny i dni tygodnia dla kazdej godziny. Strefa
-          czasowa: Europe/Warsaw (CET/CEST).
+          Ustaw maksymalnie 2 godziny i dni tygodnia dla kazdej godziny. Dostepne
+          sa tylko pelne godziny i polowki (np. 08:00, 08:30). Strefa czasowa:
+          Europe/Warsaw (CET/CEST).
         </p>
       </header>
 
@@ -288,6 +289,7 @@ export function NotificationsForm({
                   <div className="flex items-center gap-2">
                     <input
                       type="time"
+                      step={1800}
                       value={slot.time}
                       onChange={(event) =>
                         updateTime(index, event.target.value)

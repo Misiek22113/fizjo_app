@@ -41,6 +41,16 @@ type DeliveryInsert = {
   message_body: string;
 };
 
+const REMINDER_MESSAGE = "Przypominam o wykonaniu cwiczen.";
+
+function getHalfHourBucket(time: string): string {
+  const [hoursRaw, minutesRaw] = time.split(":");
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+  const bucketMinutes = minutes >= 30 ? 30 : 0;
+  return `${hours.toString().padStart(2, "0")}:${bucketMinutes.toString().padStart(2, "0")}`;
+}
+
 function mapTwilioStatus(status: string): "queued" | "sent" | "delivered" | "failed" {
   if (status === "queued") {
     return "queued";
@@ -59,8 +69,16 @@ function mapTwilioStatus(status: string): "queued" | "sent" | "delivered" | "fai
 
 export async function POST(request: NextRequest) {
   const requestSecret = request.headers.get("x-cron-secret");
+  const authorizationHeader = request.headers.get("authorization");
+  const bearerSecret = authorizationHeader?.startsWith("Bearer ")
+    ? authorizationHeader.slice("Bearer ".length)
+    : null;
 
-  if (!requestSecret || requestSecret !== serverEnv.cronSharedSecret) {
+  const isAuthorized =
+    requestSecret === serverEnv.cronSharedSecret ||
+    bearerSecret === serverEnv.cronSharedSecret;
+
+  if (!isAuthorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -82,6 +100,7 @@ export async function POST(request: NextRequest) {
     const zone = schedule.timezone || "Europe/Warsaw";
     const today = getCurrentDateInZone(zone);
     const nowTime = getCurrentTimeInZone(zone);
+    const nowBucket = getHalfHourBucket(nowTime);
     const isoWeekday = getCurrentIsoWeekdayInZone(zone);
     const normalizedSlots = (schedule.slots ?? [])
       .map((slot) => ({
@@ -97,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const slotsToEvaluate = normalizedSlots.length > 0 ? normalizedSlots : fallbackSlots;
     const dueTimes = slotsToEvaluate
-      .filter((slot) => slot.days.includes(isoWeekday) && slot.time <= nowTime)
+      .filter((slot) => slot.days.includes(isoWeekday) && slot.time === nowBucket)
       .map((slot) => slot.time);
 
     if (dueTimes.length === 0) {
@@ -148,7 +167,7 @@ export async function POST(request: NextRequest) {
             scheduled_date: today,
             scheduled_time: time,
             scheduled_timezone: zone,
-            message_body: "Przypomnienie o cwiczeniach od fizjoterapeuty.",
+            message_body: REMINDER_MESSAGE,
             status: "failed",
             error_message: "Brak numeru telefonu pacjenta.",
           } satisfies DeliveryInsert & { status: string; error_message: string },
@@ -160,7 +179,6 @@ export async function POST(request: NextRequest) {
     }
 
     for (const time of dueTimes) {
-      const messageBody = `To przypomnienie od Twojego fizjoterapeuty. Zaplanowana godzina: ${time}.`;
       const upsertPayload: DeliveryInsert = {
         schedule_id: schedule.id,
         physio_id: schedule.physio_id,
@@ -168,7 +186,7 @@ export async function POST(request: NextRequest) {
         scheduled_date: today,
         scheduled_time: time,
         scheduled_timezone: zone,
-        message_body: messageBody,
+        message_body: REMINDER_MESSAGE,
       };
 
       const { data: inserted, error: insertError } = await supabaseAdmin
@@ -193,7 +211,7 @@ export async function POST(request: NextRequest) {
         const callbackUrl = `${serverEnv.appBaseUrl}/api/twilio/status`;
         const twilioResponse = await sendTwilioSms({
           to: typedProfile.phone,
-          body: messageBody,
+          body: REMINDER_MESSAGE,
           statusCallbackUrl: callbackUrl,
         });
 

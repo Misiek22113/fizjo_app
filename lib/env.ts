@@ -39,7 +39,10 @@ export const serverEnv = {
     );
   },
   get cronSharedSecret() {
-    return requireEnv(process.env.CRON_SHARED_SECRET, "CRON_SHARED_SECRET");
+    return requireEnv(
+      process.env.CRON_SHARED_SECRET ?? process.env.CRON_SECRET,
+      "CRON_SHARED_SECRET or CRON_SECRET",
+    );
   },
   get appBaseUrl() {
     return requireEnv(process.env.APP_BASE_URL, "APP_BASE_URL");
