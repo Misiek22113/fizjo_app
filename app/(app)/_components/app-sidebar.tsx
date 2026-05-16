@@ -19,7 +19,14 @@ type NavItem = {
 
 function DashboardIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <rect x="3" y="3" width="8" height="8" rx="2" />
       <rect x="13" y="3" width="8" height="5" rx="2" />
       <rect x="13" y="10" width="8" height="11" rx="2" />
@@ -30,7 +37,14 @@ function DashboardIcon() {
 
 function PatientsIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <circle cx="9" cy="8" r="3" />
       <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
       <circle cx="17.5" cy="9" r="2.5" />
@@ -41,7 +55,14 @@ function PatientsIcon() {
 
 function PatientPortalIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <circle cx="12" cy="8" r="3.5" />
       <path d="M5 20a7 7 0 0 1 14 0" />
       <path d="M19 7h2" />
@@ -52,7 +73,14 @@ function PatientPortalIcon() {
 
 function MenuIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="M4 7h16" />
       <path d="M4 12h16" />
       <path d="M4 17h16" />
@@ -62,7 +90,14 @@ function MenuIcon() {
 
 function CloseIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="M6 6 18 18" />
       <path d="M18 6 6 18" />
     </svg>
@@ -71,7 +106,14 @@ function CloseIcon() {
 
 function ChevronLeftIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="m15 5-7 7 7 7" />
     </svg>
   );
@@ -79,7 +121,14 @@ function ChevronLeftIcon() {
 
 function ChevronRightIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
       <path d="m9 5 7 7-7 7" />
     </svg>
   );
@@ -93,7 +142,9 @@ function navForRole(role: AppRole): NavItem[] {
     ];
   }
 
-  return [{ href: "/patient", label: "Portal pacjenta", icon: <PatientPortalIcon /> }];
+  return [
+    { href: "/patient", label: "Portal pacjenta", icon: <PatientPortalIcon /> },
+  ];
 }
 
 function isActive(pathname: string, href: string): boolean {
@@ -137,8 +188,12 @@ export function AppSidebar({ role }: AppSidebarProps) {
       >
         <div className="flex h-full flex-col gap-4 p-4 md:sticky md:top-0 md:p-5">
           <div className="flex items-start justify-between gap-2">
-            <div className={`space-y-1 ${isDesktopCollapsed ? "md:hidden" : ""}`}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">Panel</p>
+            <div
+              className={`space-y-1 ${isDesktopCollapsed ? "md:hidden" : ""}`}
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">
+                Panel
+              </p>
               <Link
                 href="/"
                 onClick={() => setIsMobileOpen(false)}
@@ -157,10 +212,16 @@ export function AppSidebar({ role }: AppSidebarProps) {
               <button
                 type="button"
                 onClick={() => setIsDesktopCollapsed((prev) => !prev)}
-                aria-label={isDesktopCollapsed ? "Rozwin sidebar" : "Zwin sidebar"}
+                aria-label={
+                  isDesktopCollapsed ? "Rozwin sidebar" : "Zwin sidebar"
+                }
                 className="hidden h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white text-foreground hover:bg-surface-muted md:inline-flex"
               >
-                {isDesktopCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+                {isDesktopCollapsed ? (
+                  <ChevronRightIcon />
+                ) : (
+                  <ChevronLeftIcon />
+                )}
               </button>
 
               <button
@@ -191,7 +252,9 @@ export function AppSidebar({ role }: AppSidebarProps) {
                   title={item.label}
                 >
                   <span>{item.icon}</span>
-                  <span className={isDesktopCollapsed ? "md:hidden" : ""}>{item.label}</span>
+                  <span className={isDesktopCollapsed ? "md:hidden" : ""}>
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}

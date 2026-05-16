@@ -27,6 +27,8 @@ type NotificationSlot = {
   days: number[];
 };
 
+const TIME_24H_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
 const WEEKDAY_OPTIONS: Array<{ value: number; label: string; title: string }> =
   [
     { value: 1, label: "Pn", title: "Poniedzialek" },
@@ -38,12 +40,31 @@ const WEEKDAY_OPTIONS: Array<{ value: number; label: string; title: string }> =
     { value: 7, label: "Nd", title: "Niedziela" },
   ];
 
+const HALF_HOUR_TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
+  const hours = Math.floor(index / 2);
+  const minutes = index % 2 === 0 ? 0 : 30;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+});
+
 function normalizeDays(days: number[]): number[] {
   return [
     ...new Set(
       days.filter((day) => Number.isInteger(day) && day >= 1 && day <= 7),
     ),
   ].sort((a, b) => a - b);
+}
+
+function normalizeTimeToHalfHour(value: string): string {
+  if (!TIME_24H_PATTERN.test(value)) {
+    return "08:00";
+  }
+
+  const [hoursRaw, minutesRaw] = value.split(":");
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+  const normalizedMinutes = minutes < 30 ? 0 : 30;
+
+  return `${hours.toString().padStart(2, "0")}:${normalizedMinutes.toString().padStart(2, "0")}`;
 }
 
 function defaultSlot(previous: NotificationSlot | null): NotificationSlot {
@@ -79,7 +100,7 @@ export function NotificationsForm({
   const [slots, setSlots] = useState<NotificationSlot[]>(
     initialSlots.length > 0
       ? initialSlots.map((slot) => ({
-          time: slot.time,
+          time: normalizeTimeToHalfHour(slot.time),
           days:
             normalizeDays(slot.days).length > 0
               ? normalizeDays(slot.days)
@@ -98,7 +119,7 @@ export function NotificationsForm({
   function updateTime(index: number, value: string) {
     setSlots((prev) =>
       prev.map((entry, idx) =>
-        idx === index ? { ...entry, time: value } : entry,
+        idx === index ? { ...entry, time: normalizeTimeToHalfHour(value) } : entry,
       ),
     );
   }
@@ -188,7 +209,15 @@ export function NotificationsForm({
       }
 
       const schedule = (payload as ScheduleResponse).schedule;
-      setSlots(schedule.slots);
+      setSlots(
+        schedule.slots.map((slot) => ({
+          time: normalizeTimeToHalfHour(slot.time),
+          days:
+            normalizeDays(slot.days).length > 0
+              ? normalizeDays(slot.days)
+              : [1, 2, 3, 4, 5, 6, 7],
+        })),
+      );
       setIsEnabled(schedule.is_enabled);
       setSuccess("Harmonogram zapisany.");
     } catch {
@@ -287,16 +316,20 @@ export function NotificationsForm({
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-2">
-                    <input
-                      type="time"
-                      step={1800}
+                    <select
                       value={slot.time}
                       onChange={(event) =>
                         updateTime(index, event.target.value)
                       }
                       required
                       className="w-full rounded-md border border-blue-200 px-2 py-1.5 text-sm text-foreground sm:w-40"
-                    />
+                    >
+                      {HALF_HOUR_TIME_OPTIONS.map((timeOption) => (
+                        <option key={timeOption} value={timeOption}>
+                          {timeOption}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
                       onClick={() => removeSlot(index)}
